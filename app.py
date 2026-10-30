@@ -1,4 +1,3 @@
-```
 import os
 import requests
 import streamlit as st
@@ -245,4 +244,4 @@ BankMate AI provides general banking information, not official financial advice.
 Never share your PIN, password, CVV or OTP.
 </p>
 """, unsafe_allow_html=True)
-```
+
