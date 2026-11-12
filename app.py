@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import requests
 import os
@@ -377,4 +376,3 @@ st.markdown("""
     AI-powered banking assistance
 </div>
 """, unsafe_allow_html=True)
-```
