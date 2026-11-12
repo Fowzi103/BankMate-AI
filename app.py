@@ -171,6 +171,13 @@ except Exception:
 
 API_URL = API_URL.rstrip("/")
 
+# =====================================================
+# EXPENSE TRACKER STORAGE
+# =====================================================
+
+if "expenses" not in st.session_state:
+    st.session_state.expenses = []
+
 
 # =====================================================
 # HEADER
