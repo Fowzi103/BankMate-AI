@@ -373,6 +373,231 @@ with st.sidebar:
 
 
 # =====================================================
+# EXPENSE TRACKER - TWO FEATURES
+# =====================================================
+
+# Navigation
+if "app_page" not in st.session_state:
+    st.session_state.app_page = "Chatbot"
+
+with st.sidebar:
+    st.divider()
+    st.markdown("### 📊 Banking Tools")
+
+    if st.button("💬 AI Chatbot", use_container_width=True):
+        st.session_state.app_page = "Chatbot"
+        st.rerun()
+
+    if st.button("💰 Expense Tracker", use_container_width=True):
+        st.session_state.app_page = "Expense Tracker"
+        st.rerun()
+
+
+# =====================================================
+# EXPENSE TRACKER PAGE
+# =====================================================
+
+if st.session_state.app_page == "Expense Tracker":
+
+    st.markdown(
+        "<h1 style='color:#142B52;'>💰 Expense Tracker</h1>",
+        unsafe_allow_html=True
+    )
+
+    st.caption("Track your spending and understand where your money goes.")
+
+    expenses = st.session_state.expenses
+
+    # -------------------------------------------------
+    # FEATURE 1: ADD AND MANAGE EXPENSES
+    # -------------------------------------------------
+
+    st.subheader("➕ Add New Expense")
+
+    with st.form("expense_form", clear_on_submit=True):
+
+        amount = st.number_input(
+            "Expense Amount (₹)",
+            min_value=0.01,
+            step=10.0,
+            format="%.2f"
+        )
+
+        category = st.selectbox(
+            "Expense Category",
+            [
+                "Food",
+                "Shopping",
+                "Transport",
+                "Bills",
+                "Entertainment",
+                "Healthcare",
+                "Education",
+                "Other"
+            ]
+        )
+
+        expense_date = st.date_input(
+            "Expense Date",
+            value=__import__("datetime").date.today()
+        )
+
+        description = st.text_input(
+            "Description",
+            placeholder="Example: Grocery shopping"
+        )
+
+        submitted = st.form_submit_button(
+            "Add Expense",
+            use_container_width=True
+        )
+
+        if submitted:
+
+            new_expense = {
+                "id": __import__("uuid").uuid4().hex,
+                "amount": float(amount),
+                "category": category,
+                "date": expense_date.isoformat(),
+                "description": description.strip()
+            }
+
+            st.session_state.expenses.append(new_expense)
+
+            st.success("Expense added successfully!")
+            st.rerun()
+
+    st.divider()
+
+    # -------------------------------------------------
+    # FEATURE 2: EXPENSE ANALYTICS DASHBOARD
+    # -------------------------------------------------
+
+    st.subheader("📈 Expense Analytics")
+
+    if expenses:
+
+        import pandas as pd
+
+        df = pd.DataFrame(expenses)
+
+        df["date"] = pd.to_datetime(df["date"])
+        df["amount"] = pd.to_numeric(df["amount"])
+
+        today = __import__("datetime").date.today()
+        current_month = today.strftime("%Y-%m")
+
+        monthly_df = df[
+            df["date"].dt.strftime("%Y-%m") == current_month
+        ]
+
+        total_spending = df["amount"].sum()
+        monthly_spending = monthly_df["amount"].sum()
+
+        col1, col2 = st.columns(2)
+
+        col1.metric(
+            "Total Expenses",
+            f"₹{total_spending:,.2f}"
+        )
+
+        col2.metric(
+            "This Month",
+            f"₹{monthly_spending:,.2f}"
+        )
+
+        st.markdown("### Category-wise Spending")
+
+        category_data = (
+            df.groupby("category")["amount"]
+            .sum()
+            .sort_values(ascending=False)
+        )
+
+        st.bar_chart(category_data)
+
+        st.markdown("### Expense History")
+
+        display_df = df.sort_values(
+            "date",
+            ascending=False
+        ).copy()
+
+        display_df["date"] = display_df["date"].dt.strftime("%d-%m-%Y")
+
+        display_df = display_df[
+            ["date", "description", "category", "amount"]
+        ]
+
+        display_df.columns = [
+            "Date",
+            "Description",
+            "Category",
+            "Amount (₹)"
+        ]
+
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        # CSV Download
+        csv_data = df.drop(columns=["id"]).to_csv(
+            index=False
+        ).encode("utf-8")
+
+        st.download_button(
+            "⬇️ Download Expense Report (CSV)",
+            data=csv_data,
+            file_name="bankmate_expenses.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
+        # Delete expenses
+        st.markdown("### 🗑️ Manage Expenses")
+
+        expense_options = {
+            f"{item['date']} | ₹{item['amount']:.2f} | "
+            f"{item['category']} | {item['description'] or 'No description'}":
+            item["id"]
+            for item in reversed(expenses)
+        }
+
+        selected_expense = st.selectbox(
+            "Select an expense to delete",
+            options=list(expense_options.keys())
+        )
+
+        if st.button("Delete Selected Expense"):
+
+            selected_id = expense_options[selected_expense]
+
+            st.session_state.expenses = [
+                item for item in st.session_state.expenses
+                if item["id"] != selected_id
+            ]
+
+            st.success("Expense deleted successfully!")
+            st.rerun()
+
+    else:
+
+        st.info(
+            "No expenses recorded yet. Add your first expense above "
+            "to see your analytics dashboard."
+        )
+
+    st.divider()
+
+    if st.button("← Return to AI Chatbot"):
+        st.session_state.app_page = "Chatbot"
+        st.rerun()
+
+
+
+# =====================================================
 # FOOTER
 # =====================================================
 
