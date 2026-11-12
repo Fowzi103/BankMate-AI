@@ -17,7 +17,6 @@ if torch.cuda.is_available():
 else:
     print("Please select a GPU runtime.")
 
-!pip install -q transformers==4.51.3 peft accelerate bitsandbytes datasets trl
 
 import torch
 import transformers
